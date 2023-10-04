@@ -1,0 +1,10 @@
+push 1000
+push 2000
+sin 
+cos
+mul
+out
+divis
+push 100
+in
+HLT
