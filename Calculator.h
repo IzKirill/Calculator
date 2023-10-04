@@ -29,5 +29,6 @@ enum Commands {
 
 CalcError VM (const char* namefile);
 CalcError Compil (const char* namefile);
+CalcError DizAssembl (const char* namefile);
 
 #endif
