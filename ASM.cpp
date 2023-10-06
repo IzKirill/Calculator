@@ -8,6 +8,12 @@ CalcError Compil (const char* namefile)
 	FILE* CodeASM = fopen(namefile, "r");
 	FILE* ByteCode = fopen("ByteCode.txt", "w");
 	
+	if (CodeASM == nullptr)
+	{
+		printf("Can not open source file(%s).\n", namefile);
+		return ERROROPENFILE;
+	}
+
 	while (!feof(CodeASM) && !ferror(CodeASM))
 	{
 		char command[MAX_SIZE_COMMAND] = {};
@@ -17,7 +23,7 @@ CalcError Compil (const char* namefile)
 			printf("Incorrect input, correct your ASM code.\n");
 			return ERRORINPUTCOM;
 		}
-		
+			
 		if (!strcmp(command, "push"))
 		{
 			Elemt PushElement = 0;

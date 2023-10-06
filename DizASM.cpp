@@ -7,6 +7,12 @@ CalcError DizAssembl (const char* namefile)
 	FILE* CodeASM = fopen("ASMcode.txt", "w");
 	FILE* ByteCode = fopen(namefile, "r");
 	
+	if (ByteCode == nullptr)
+	{
+		printf("Can not open source file(%s).\n", namefile);
+		return ERROROPENFILE;
+	}
+
 	while (!feof(ByteCode) && !ferror(ByteCode))
 	{
 		int command = 0;

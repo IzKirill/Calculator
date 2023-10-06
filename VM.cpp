@@ -4,8 +4,6 @@
 #include "Stack.h"
 #include "Clear_Buffer.h"
 
-static Elemt PopElement (Stack* PitColculations);
-
 CalcError VM (const char* namefile)
 {
 	FILE* bytecode = fopen(namefile, "r");
@@ -19,12 +17,16 @@ CalcError VM (const char* namefile)
 	Stack PitColculations = {};
 	STACK_CTOR(&PitColculations, 3);
 
-	int command = 0;
-	int OKscanf = 0;
-
-	while((OKscanf = fscanf(bytecode, "%d", &command)) != EOF && OKscanf == 1)
+	while(!feof(bytecode) && !ferror(bytecode))
 	{
-		printf("Now i do command %d\n", command);
+		int command = 0;
+
+		if (fscanf(bytecode, "%d", &command) != 1)
+		{
+			printf("Can not scan your command.\n");
+			return NOCOMMAND;
+		}
+
 		switch(command)
 		{
 			case(push):
@@ -116,12 +118,11 @@ CalcError VM (const char* namefile)
 		}	
 	}
 
-	return END;
-}
+	if (ferror(bytecode))
+	{
+		printf("File error.\n");
+		return FILERROR;
+	}
 
-static Elemt PopElement (Stack* PitColculations)
-{
-	Elemt Element = 0;
-	if (StackPop(&PitColculations, &Element))
-	return Element;	
+	return END;
 }
