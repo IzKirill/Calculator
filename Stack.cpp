@@ -46,17 +46,17 @@ error StackCtor(Stack* stk, const size_t Capacity, const char* name,
                                 , sizeof(char))
                           +sizeof(CanaryType));
 
+    if (stk->data-sizeof(CanaryType) == nullptr)
+    {
+       printf("ERROR: StackCtor: Stack(%s) Allocation failure.\n",
+                stk->stk_name);
+        return NODINMEMORY; 
+    }
+
     AddCanary(stk);
 
     AddHashStk(stk);
     AddHashData(stk);
-
-    if (!stk->data)
-    {
-        printf("ERROR: StackCtor: Stack(%s) Allocation failure.\n",
-                stk->stk_name);
-        return NODINMEMORY;
-    }
 
     if(STACKOK(stk))
         return STACK_DUMP(stk);
@@ -102,7 +102,7 @@ error StackPush (Stack* stk, Elemt value)
         Elemt* massive = (Elemt*) ((char*) realloc((char*) stk->data - sizeof(CanaryType),
         sizeof(HashType)+stk->Capacity*sizeof(Elemt)+2*sizeof(CanaryType))+sizeof(CanaryType));
 
-        if (massive == NULL)
+        if (massive - sizeof(CanaryType) == NULL)
         {
             printf("ERROR: StackPush: Stack(%s) Allocation failure.\n",
                     stk->stk_name);
@@ -176,8 +176,18 @@ error StackPop (Stack* stk, Elemt* refValue)
     if (2*stk->Size <= stk->Capacity)
     {
         stk->Capacity /= 2;
-        stk->data = (Elemt*) ((char*) realloc((char*) stk->data - sizeof(CanaryType),
+        Elemt* massive = (Elemt*) ((char*) realloc((char*) stk->data - sizeof(CanaryType),
         sizeof(HashType)+stk->Capacity*sizeof(Elemt)+2*sizeof(CanaryType))+sizeof(CanaryType));
+
+        if (massive - sizeof(CanaryType) == NULL)
+        {
+            printf("ERROR: StackPush: Stack(%s) Allocation failure.\n",
+                    stk->stk_name);
+            return NODINMEMORY;
+        }
+
+        stk->data = massive;
+
         AddCanary(stk);
     }
 
@@ -307,8 +317,7 @@ static error StackOK(const Stack* stk, const size_t line,
 
 #ifndef RELEASE
 error StackDump (Stack* stk, const size_t nline, const char* namefile, const char* func)
-{   // -> to file
-    // 100 % garanty
+{  
     if (stk == NULL)
     {
         printf("ERROR: Stack == NULL\n");
@@ -334,6 +343,36 @@ error StackDump (Stack* stk, const size_t nline, const char* namefile, const cha
     }
 
     printf("}\n  }\n");
+    
+    FILE* logs = fopen("StackLogs.txt", "w");
+
+    if (logs == nullptr)
+    {
+        printf("ERROR: Can not create log file.\n");
+        return LOGERROR;
+    }
+
+    fprintf(logs,"Stack[%p] %s from %s(%ld) %s", stk, stk->stk_name, stk->birth_file,
+                                          stk->birth_line, stk->birth_function);
+    fprintf(logs," called from %s(%ld) %s\n", namefile, nline, func);
+    fprintf(logs,"  {\n   Size = %ld\n   Capacity = %ld\n LeftCanary = %0llx\n RightCanary = %0llx\n Hash = %llu\n   data[%p]\n"
+    "\t{\n\t", stk->Size, stk->Capacity, stk->left_canary, stk->right_canary, stk->StkHash, (void*) stk->data);
+
+    if (stk->Size > 0)
+    {
+        for (size_t nelemnt = 0; nelemnt < stk->Size; nelemnt++)
+            fprintf(logs,"*[%ld]=%d\n\t", nelemnt, stk->data[nelemnt]);
+
+        if (stk->Capacity > 0)
+        {
+            for (size_t nelemnt = stk->Size; nelemnt < stk->Capacity; nelemnt++)
+                fprintf(logs," [%ld]=%d\n\t", nelemnt, stk->data[nelemnt]);
+        }
+    }
+
+    fprintf(logs,"}\n  }\n");
+
+    fclose(logs);
 
     return ERROR;
 }
@@ -349,7 +388,7 @@ static error AddCanary(Stack* stk)
     stk->left_canary = left_canary;
     stk->right_canary = right_canary;
 
-     *(CanaryType*)((char*) stk->data - sizeof(CanaryType)) = left_canary;
+    *(CanaryType*)((char*) stk->data - sizeof(CanaryType)) = left_canary;
     *(CanaryType*) (stk->data+stk->Capacity) = right_canary;
 
     return OK;

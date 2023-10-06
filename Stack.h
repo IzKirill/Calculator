@@ -1,7 +1,6 @@
 #ifndef __STACK_H__
 #define __STACK_H__
 
-#define RELEASE
 #ifndef RELEASE
     #define STACK_DUMP(stk) StackDump((stk), __LINE__,__FILE__,__PRETTY_FUNCTION__ )
 #else
@@ -46,6 +45,7 @@ enum error {
     ATTACKCANARY = 13,
     INCHASHSTACK = 14,
     INCHASHDATA = 15,
+    LOGERROR = 16,
     ERROR = -1,
     OK = 0
 };
