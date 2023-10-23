@@ -2,37 +2,35 @@
 #define __STACK_H__
 
 #ifndef RELEASE
-    #define STACK_DUMP(stk) StackDump((stk), __LINE__,__FILE__,__PRETTY_FUNCTION__ )
+    #define STACK_DUMP(Stk) StackDump((Stk), __LINE__,__FILE__,__PRETTY_FUNCTION__ )
 #else
-    #define STACK_DUMP(stk) ERROR
-    #define CheckCanary(stk) OK
-    #define AddCanary(stk)
-    #define AddHashStk(stk)
-    #define AddHashData(stk)
-    #define CheckHash(stk)  OK
-    #define ChangeHashStk(stk)
-    #define ChangeHashData(stk)
+    #define STACK_DUMP(Stk) 
+    #define CheckCanary(Stk) 0
+    #define AddCanary(Stk)
+    #define AddHashStk(Stk)
+    #define AddHashData(Stk)
+    #define CheckHash(Stk)  0
+    #define ChangeHashStk(Stk)
+    #define ChangeHashData(Stk)
 #endif
 
-#define STACK_CTOR(stk, capacity) StackCtor((stk), (capacity), #stk, \
+#define STACK_CTOR(Stk, capacity) StackCtor((Stk), (capacity), #Stk, \
                                   __LINE__,__FILE__,__PRETTY_FUNCTION__)
 
-#define STACKOK(stk) StackOK((stk), __LINE__,__FILE__,__PRETTY_FUNCTION__) // debug mode
-
+#define STACKOK(Stk) StackOK((Stk), __LINE__,__FILE__,__PRETTY_FUNCTION__) // debug mode
 
 #define CHECKCONDITION(condition, ErrorCode, ErrorMessage) do {              \
-                                                            if (condition)  \
-                                                            {               \
-                                                                if (LogFile == 0)               \
+                                                            if (condition)  { \
+                                                                if (LogFile == NULL) \
                                                                     LogFile = fopen(NameLogFile, "w"); \
-                                                                fprintf(LogFile, "%s", ErrorMessage);\
+                                                                fprintf(LogFile, "%s",ErrorMessage); \
                                                                 return ErrorCode; \
-                                                            }    }  while(0);    
+                                                            }    }  while(0)       
 
 typedef unsigned long long CanaryType;
 typedef unsigned long long HashType;
 
-typedef char Error;
+typedef short Error;
 
 typedef int Elemt;
 
@@ -45,20 +43,23 @@ enum error {
     CAPACITY_LESS_SIZE = 1,  // !
     CAPACITY_EQUAL_ZERO = 2,// !
     NULL_STACK_DATA = 3,  // !    
-    STACK_CANARY_DESTROY = 4,   // !  // left and right
-    DATA_CANARY_DESTROY = 5,  // ! 
-    INC_HASH_STACK = 6,  // !
-    INC_HASH_DATA = 7,   // !
+    STACK_LEFT_CANARY_DESTROY = 4,   // !  // left and right
+    STACK_RIGHT_CANARY_DESTROY = 5,
+    DATA_LEFT_CANARY_DESTROY = 6,  // !
+    DATA_RIGHT_CANARY_DESTROY = 7,
+    INC_HASH_STACK = 8,  // !
+    INC_HASH_DATA = 9,   // !
 
-    NULL_STR_STK = 50,
-    INCORRECT_CAPACITY = 51,
-    NO_DIN_MEMORY = 52,
-    SIZE_EQUAL_ZERO = 53,
-    STACK_NOT_CTOR = 54,
-    STACK_DTOR = 55, 
-    LOG_ERROR = 56,
-    ADRESS_NULL = 57,
-    INC_HASH = 58,
+    NULL_STR_STK = 1000,
+    INCORRECT_CAPACITY = 1001,
+    NO_DIN_MEMORY = 1002,
+    SIZE_EQUAL_ZERO = 1003,
+    STACK_NOT_CTOR = 1004,
+    STACK_DTOR = 1005, 
+    LOG_ERROR = 1006,
+    ADRESS_NULL = 1007,
+    INC_HASH = 1008,
+    NULL_POINTER = 1009,
 
     ERROR = -1,
     OK = 0
@@ -77,7 +78,7 @@ struct Stack {
     bool isStackDtor; // strack debug
     BirthInfo StackInfo;
     size_t Size;
-    Elemt* data;
+    Elemt* Data;
     size_t Capacity;
     Error ErrorsInfo;
     CanaryType right_canary;
@@ -85,14 +86,14 @@ struct Stack {
 };
 
 
-error StackOK(Stack* stk, const size_t Line,
-              const char* NameFile, const char* func);
-error StackCtor(Stack* stk, const size_t Capacity, const char* name,
+error StackOK(Stack* Stk, const size_t Line,
+              const char* NameFile, const char* Func);
+error StackCtor(Stack* Stk, const size_t Capacity, const char* Name,
                 const size_t birth_line, const char* birth_file, const char* birth_function);
-error StackDtor(Stack* stk);
-error StackPop(Stack* stk, Elemt* refValue);
-error StackPush(Stack* stk, Elemt value);
-error StackDump(Stack* stk, const size_t nline, // const
-                const char* NameFile, const char* func);
+error StackDtor(Stack* Stk);
+error StackPop(Stack* Stk, Elemt* refValue);
+error StackPush(Stack* Stk, Elemt Value);
+error StackDump(Stack* Stk, const size_t nline, // const
+                const char* NameFile, const char* Func);
 
 #endif
